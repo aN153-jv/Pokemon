@@ -1,1 +1,22 @@
-{}
+{
+  "pikachu": {
+    "name": "Pikachu",
+    "type": "Electrik",
+    "level": 50,
+    "maxHp": 120,
+    "hp": 120,
+    "attacks": ["Electacle", "Queue de Fer", "Vive-Attaque", "Tonnerre"],
+    "frontSprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/animated/25.gif",
+    "backSprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/animated/back/25.gif"
+  },
+  "dracaufeu": {
+    "name": "Dracaufeu",
+    "type": "Feu",
+    "level": 50,
+    "maxHp": 150,
+    "hp": 150,
+    "attacks": ["Lance-Flammes", "Dracacriffe", "Déflagration", "Vol"],
+    "frontSprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/animated/6.gif",
+    "backSprite": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/animated/back/6.gif"
+  }
+}
