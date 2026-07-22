@@ -1,4 +1,5 @@
-import { createPokemonInstance, PokemonInstance, Move } from '@/src/utils/dataLoader';
+import { createPokemonInstance, PokemonInstance } from '@/src/utils/dataLoader';
+import { calculateDamage } from './DamageCalculator';
 
 export class BattleManager {
   player: PokemonInstance;
@@ -18,14 +19,14 @@ export class BattleManager {
 
   executePlayerTurn(attackIndex: number) {
     const move = this.player.attacks[attackIndex];
-    const damage = move ? move.power : 20;
+    const damage = calculateDamage(this.player, this.enemy, move);
     this.enemy.hp = Math.max(0, this.enemy.hp - damage);
     return { move, damage, enemyHp: this.enemy.hp };
   }
 
   executeEnemyTurn() {
     const randomMove = this.enemy.attacks[Math.floor(Math.random() * this.enemy.attacks.length)];
-    const damage = randomMove ? randomMove.power : 20;
+    const damage = calculateDamage(this.enemy, this.player, randomMove);
     this.player.hp = Math.max(0, this.player.hp - damage);
     return { move: randomMove, damage, playerHp: this.player.hp };
   }
