@@ -1,3 +1,4 @@
+import Renderer from "../engine/Renderer";
 import Phaser from "phaser";
 
 export default class World extends Phaser.Scene{
@@ -13,7 +14,7 @@ export default class World extends Phaser.Scene{
     }
 
     create(){
-
+        Renderer.draw(this);
         this.player=this.physics.add.sprite(
 
             200,
