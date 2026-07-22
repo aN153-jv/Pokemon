@@ -1,29 +1,31 @@
-import { calculateDamage } from './DamageCalculator';
-import { getPokemonById } from '@/src/utils/dataLoader';
-
-// Exemple d'initialisation propre avec vos fichiers JSON
-const pikachuTemplate = getPokemonById('pikachu');
-const charizardTemplate = getPokemonById('dracaufeu');
+import { createPokemonInstance, PokemonInstance, Move } from '@/src/utils/dataLoader';
 
 export class BattleManager {
-  player: any;
-  enemy: any;
+  player: PokemonInstance;
+  enemy: PokemonInstance;
 
-  constructor(player: any, enemy: any) {
-    this.player = player;
-    this.enemy = enemy;
+  constructor(playerId: string, enemyId: string) {
+    const playerInstance = createPokemonInstance(playerId);
+    const enemyInstance = createPokemonInstance(enemyId);
+
+    if (!playerInstance || !enemyInstance) {
+      throw new Error("Pokémon introuvable dans les fichiers JSON !");
+    }
+
+    this.player = playerInstance;
+    this.enemy = enemyInstance;
   }
 
   executePlayerTurn(attackIndex: number) {
     const move = this.player.attacks[attackIndex];
-    const damage = calculateDamage(this.player, this.enemy, move);
+    const damage = move ? move.power : 20;
     this.enemy.hp = Math.max(0, this.enemy.hp - damage);
     return { move, damage, enemyHp: this.enemy.hp };
   }
 
   executeEnemyTurn() {
     const randomMove = this.enemy.attacks[Math.floor(Math.random() * this.enemy.attacks.length)];
-    const damage = calculateDamage(this.enemy, this.player, randomMove);
+    const damage = randomMove ? randomMove.power : 20;
     this.player.hp = Math.max(0, this.player.hp - damage);
     return { move: randomMove, damage, playerHp: this.player.hp };
   }
