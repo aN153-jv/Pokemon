@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { BattleManager } from './BattleManager';
 import { PlayerTeam } from '@/src/player/PlayerTeam';
 import { InventoryManager } from '@/src/inventory/InventoryManager';
+import { CaptureManager } from './CaptureManager';
 
 export default function BattleComponent() {
   const [playerTeam] = useState(() => new PlayerTeam(['pikachu', 'dracaufeu']));
@@ -93,6 +94,62 @@ export default function BattleComponent() {
         return;
       }
 
+      const handleUseItem = (itemId: string) => {
+    const success = inventory.useItem(itemId);
+    if (!success) {
+      setDialogue(`Il n'y a plus de ${itemId === 'potion' ? 'Potions' : 'Poké Balls'} !`);
+      return;
+    }
+
+    setShowBag(false);
+    setIsLocked(true);
+
+    if (itemId === 'potion') {
+      const healAmount = 25;
+      const newHp = Math.min(activePokemon.maxHp, playerHp + healAmount);
+      setPlayerHp(newHp);
+      playerTeam.updateActiveHp(newHp);
+
+      setDialogue(`${activePokemon.name} utilise une Potion et regagne des PV !`);
+
+      setTimeout(() => {
+        const eResult = battle.executeEnemyTurn(activePokemon);
+        setPlayerHp(eResult.playerHp);
+        setDialogue(`Le ${battle.enemy.name} adverse utilise ${eResult.move.name} !`);
+
+        setTimeout(() => {
+          setDialogue(`Que doit faire ${activePokemon.name} ?`);
+          setIsLocked(false);
+        }, 1500);
+      }, 1500);
+
+    } else if (itemId === 'pokeball') {
+      setDialogue(`Vous lancez une Poké Ball sur ${battle.enemy.name}...`);
+
+      setTimeout(() => {
+        const isCaught = CaptureManager.tryCatch(battle.enemy);
+
+        if (isCaught) {
+          setDialogue(`Bravo ! ${battle.enemy.name} a été capturé !`);
+          // Vous pouvez ici l'ajouter à l'équipe du joueur via playerTeam.team.push(battle.enemy)
+        } else {
+          setDialogue(`Zut ! ${battle.enemy.name} s'est libéré de la Poké Ball !`);
+
+          // Tour de l'ennemi après l'échec de capture
+          setTimeout(() => {
+            const eResult = battle.executeEnemyTurn(activePokemon);
+            setPlayerHp(eResult.playerHp);
+            setDialogue(`Le ${battle.enemy.name} adverse utilise ${eResult.move.name} !`);
+
+            setTimeout(() => {
+              setDialogue(`Que doit faire ${activePokemon.name} ?`);
+              setIsLocked(false);
+            }, 1500);
+          }, 1500);
+        }
+      }, 2000);
+    };
+      
       const healAmount = 25;
       const newHp = Math.min(activePokemon.maxHp, playerHp + healAmount);
       setPlayerHp(newHp);
