@@ -1,1 +1,14 @@
-{}
+{
+  "potion": {
+    "name": "Potion",
+    "effect": "heal",
+    "value": 20,
+    "description": "Restaure 20 PV à un Pokémon."
+  },
+  "pokeball": {
+    "name": "Poké Ball",
+    "effect": "catch",
+    "rate": 1.0,
+    "description": "Un outil pour capturer des Pokémon sauvages."
+  }
+}
