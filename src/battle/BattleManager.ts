@@ -1,4 +1,9 @@
 import { calculateDamage } from './DamageCalculator';
+import { getPokemonById } from '@/src/utils/dataLoader';
+
+// Exemple d'initialisation propre avec vos fichiers JSON
+const pikachuTemplate = getPokemonById('pikachu');
+const charizardTemplate = getPokemonById('dracaufeu');
 
 export class BattleManager {
   player: any;
