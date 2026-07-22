@@ -18,25 +18,25 @@ export class BattleManager {
     this.enemy = enemyInstance;
   }
 
-  // Exécute le tour du joueur avec un index d'attaque donné
+  // Exécute le tour du joueur
   executePlayerTurn(attackIndex: number, activePlayerPokemon?: PokemonInstance) {
     const currentAttacker = activePlayerPokemon || this.player;
     const move = currentAttacker.attacks[attackIndex] || { name: "Charge", type: "Normal", power: 30, accuracy: 100 };
     
-    const damage = calculateDamage(currentAttacker, this.enemy, move);
-    this.enemy.hp = Math.max(0, this.enemy.hp - damage);
+    const damageInfo = calculateDamage(currentAttacker, this.enemy, move);
+    this.enemy.hp = Math.max(0, this.enemy.hp - damageInfo.damage);
     
-    return { move, damage, enemyHp: this.enemy.hp };
+    return { move, damageInfo, enemyHp: this.enemy.hp };
   }
 
-  // Exécute le tour de l'ennemi en utilisant l'IA
+  // Exécute le tour de l'ennemi via l'IA
   executeEnemyTurn(activePlayerPokemon?: PokemonInstance) {
     const currentDefender = activePlayerPokemon || this.player;
     const chosenMove = BattleAI.chooseMove(this.enemy, currentDefender);
     
-    const damage = calculateDamage(this.enemy, currentDefender, chosenMove);
-    currentDefender.hp = Math.max(0, currentDefender.hp - damage);
+    const damageInfo = calculateDamage(this.enemy, currentDefender, chosenMove);
+    currentDefender.hp = Math.max(0, currentDefender.hp - damageInfo.damage);
     
-    return { move: chosenMove, damage, playerHp: currentDefender.hp };
+    return { move: chosenMove, damageInfo, playerHp: currentDefender.hp };
   }
 }
