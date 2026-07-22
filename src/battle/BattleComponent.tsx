@@ -1,35 +1,10 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { BattleManager } from './BattleManager';
 
 export default function BattleComponent() {
-  // Définition de base de vos Pokémon
-  const [battle] = useState(() => new BattleManager(
-    {
-      name: "Pikachu",
-      maxHp: 120,
-      hp: 120,
-      attacks: [
-        { name: "Électacle", power: 45 },
-        { name: "Queue de Fer", power: 35 },
-        { name: "Vive-Attaque", power: 25 },
-        { name: "Tonnerre", power: 40 },
-      ],
-      img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/animated/back/25.gif"
-    },
-    {
-      name: "Dracaufeu",
-      maxHp: 150,
-      hp: 150,
-      attacks: [
-        { name: "Lance-Flammes", power: 40 },
-        { name: "Dracacriffe", power: 30 },
-        { name: "Déflagration", power: 55 },
-        { name: "Vol", power: 35 },
-      ],
-      img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/animated/6.gif"
-    }
-  ));
+  // On initialise le manager avec les identifiants présents dans pokemon.json
+  const [battle] = useState(() => new BattleManager('pikachu', 'dracaufeu'));
 
   const [playerHp, setPlayerHp] = useState(battle.player.hp);
   const [enemyHp, setEnemyHp] = useState(battle.enemy.hp);
@@ -40,7 +15,7 @@ export default function BattleComponent() {
     if (isLocked) return;
     setIsLocked(true);
 
-    // 1. Tour du joueur
+    // Tour du joueur
     const pResult = battle.executePlayerTurn(index);
     setEnemyHp(pResult.enemyHp);
     setDialogue(`${battle.player.name} utilise ${pResult.move.name} !`);
@@ -50,7 +25,7 @@ export default function BattleComponent() {
       return;
     }
 
-    // 2. Tour de l'ennemi après un délai
+    // Tour de l'ennemi
     setTimeout(() => {
       const eResult = battle.executeEnemyTurn();
       setPlayerHp(eResult.playerHp);
@@ -78,7 +53,7 @@ export default function BattleComponent() {
           <div className="bg-white/90 border-2 border-gray-600 p-2 rounded-lg w-40 text-sm shadow">
             <div className="flex justify-between font-bold">
               <span>{battle.enemy.name}</span>
-              <span>Lv 50</span>
+              <span>Lv {battle.enemy.level}</span>
             </div>
             <div className="w-full bg-gray-300 h-2.5 border border-black rounded my-1 overflow-hidden">
               <div 
@@ -88,16 +63,16 @@ export default function BattleComponent() {
             </div>
             <span className="text-xs">{enemyHp}/{battle.enemy.maxHp}</span>
           </div>
-          <img src={battle.enemy.img} alt={battle.enemy.name} className="w-28 h-28" style={{ imageRendering: 'pixelated' }} />
+          <img src={battle.enemy.frontSprite} alt={battle.enemy.name} className="w-28 h-28" style={{ imageRendering: 'pixelated' }} />
         </div>
 
         {/* Joueur */}
         <div className="absolute bottom-4 left-4 flex items-center gap-2">
-          <img src={battle.player.img} alt={battle.player.name} className="w-28 h-28" style={{ imageRendering: 'pixelated' }} />
+          <img src={battle.player.backSprite} alt={battle.player.name} className="w-28 h-28" style={{ imageRendering: 'pixelated' }} />
           <div className="bg-white/90 border-2 border-gray-600 p-2 rounded-lg w-40 text-sm shadow">
             <div className="flex justify-between font-bold">
               <span>{battle.player.name}</span>
-              <span>Lv 50</span>
+              <span>Lv {battle.player.level}</span>
             </div>
             <div className="w-full bg-gray-300 h-2.5 border border-black rounded my-1 overflow-hidden">
               <div 
@@ -116,7 +91,7 @@ export default function BattleComponent() {
           {dialogue}
         </div>
         <div className="flex-[1.5] grid grid-cols-2 gap-2 p-2.5">
-          {battle.player.attacks.map((att: any, idx: number) => (
+          {battle.player.attacks.map((att, idx) => (
             <button
               key={idx}
               onClick={() => handleAttackClick(idx)}
