@@ -5,11 +5,9 @@ import { PlayerTeam } from '@/src/player/PlayerTeam';
 import { InventoryManager } from '@/src/inventory/InventoryManager';
 
 export default function BattleComponent() {
-  // Gestion de l'équipe du joueur et de l'adversaire
   const [playerTeam] = useState(() => new PlayerTeam(['pikachu', 'dracaufeu']));
   const [inventory] = useState(() => new InventoryManager());
-  
-  const [battle] = useState(() => new BattleManager(playerTeam.getActiveModelId ? 'pikachu' : 'pikachu', 'dracaufeu'));
+  const [battle] = useState(() => new BattleManager('pikachu', 'dracaufeu'));
 
   const [activePokemon, setActivePokemon] = useState(playerTeam.getActivePokemon());
   const [playerHp, setPlayerHp] = useState(activePokemon.hp);
@@ -19,7 +17,47 @@ export default function BattleComponent() {
   const [showTeamMenu, setShowTeamMenu] = useState(false);
   const [showBag, setShowBag] = useState(false);
 
-  // Changement de Pokémon actif
+  const handleAttackClick = (index: number) => {
+    if (isLocked) return;
+    setIsLocked(true);
+
+    // 1. Tour du joueur
+    const pResult = battle.executePlayerTurn(index, activePokemon);
+    setEnemyHp(pResult.enemyHp);
+    
+    let text = `${activePokemon.name} utilise ${pResult.move.name} !`;
+    if (pResult.damageInfo.isEffective) text += " C'est super efficace !";
+    if (pResult.damageInfo.isIneffective) text += " Ce n'est pas très efficace...";
+    setDialogue(text);
+
+    if (pResult.enemyHp <= 0) {
+      setTimeout(() => setDialogue(`Victoire ! ${battle.enemy.name} est K.O. !`), 1200);
+      return;
+    }
+
+    // 2. Tour de l'ennemi (IA)
+    setTimeout(() => {
+      const eResult = battle.executeEnemyTurn(activePokemon);
+      setPlayerHp(eResult.playerHp);
+      playerTeam.updateActiveHp(eResult.playerHp);
+
+      let enemyText = `Le ${battle.enemy.name} adverse utilise ${eResult.move.name} !`;
+      if (eResult.damageInfo.isEffective) enemyText += " C'est super efficace !";
+      setDialogue(enemyText);
+
+      if (eResult.playerHp <= 0) {
+        setTimeout(() => setDialogue(`${activePokemon.name} est K.O...`), 1200);
+        return;
+      }
+
+      setTimeout(() => {
+        setDialogue(`Que doit faire ${activePokemon.name} ?`);
+        setIsLocked(false);
+      }, 1500);
+
+    }, 1500);
+  };
+
   const handleSwitchPokemon = (index: number) => {
     const success = playerTeam.switchPokemon(index);
     if (!success) {
@@ -36,7 +74,7 @@ export default function BattleComponent() {
     setDialogue(`Reviens ! Go, ${newActive.name} !`);
 
     setTimeout(() => {
-      const eResult = battle.executeEnemyTurn();
+      const eResult = battle.executeEnemyTurn(newActive);
       setPlayerHp(eResult.playerHp);
       setDialogue(`Le ${battle.enemy.name} adverse utilise ${eResult.move.name} !`);
 
@@ -47,47 +85,39 @@ export default function BattleComponent() {
     }, 1500);
   };
 
-  const handleAttackClick = (index: number) => {
-    if (isLocked) return;
-    setIsLocked(true);
-
-    // Tour du joueur (en prenant les attaques du Pokémon actif)
-    const move = activePokemon.attacks[index];
-    const damage = move ? move.power : 30;
-    const newEnemyHp = Math.max(0, battle.enemy.hp - damage);
-    battle.enemy.hp = newEnemyHp;
-    setEnemyHp(newEnemyHp);
-
-    setDialogue(`${activePokemon.name} utilise ${move.name} !`);
-
-    if (newEnemyHp <= 0) {
-      setTimeout(() => setDialogue(`Victoire ! ${battle.enemy.name} est K.O. !`), 1000);
-      return;
-    }
-
-    // Tour de l'ennemi
-    setTimeout(() => {
-      const eResult = battle.executeEnemyTurn();
-      setPlayerHp(eResult.playerHp);
-      playerTeam.updateActiveHp(eResult.playerHp);
-      setDialogue(`Le ${battle.enemy.name} adverse utilise ${eResult.move.name} !`);
-
-      if (eResult.playerHp <= 0) {
-        setTimeout(() => setDialogue(`${activePokemon.name} est K.O...`), 1000);
+  const handleUseItem = (itemId: string) => {
+    if (itemId === 'potion') {
+      const success = inventory.useItem('potion');
+      if (!success) {
+        setDialogue("Il n'y a plus de Potions !");
         return;
       }
 
-      setTimeout(() => {
-        setDialogue(`Que doit faire ${activePokemon.name} ?`);
-        setIsLocked(false);
-      }, 1500);
+      const healAmount = 25;
+      const newHp = Math.min(activePokemon.maxHp, playerHp + healAmount);
+      setPlayerHp(newHp);
+      playerTeam.updateActiveHp(newHp);
+      setShowBag(false);
+      setIsLocked(true);
 
-    }, 1500);
+      setDialogue(`${activePokemon.name} utilise une Potion et regagne des PV !`);
+
+      setTimeout(() => {
+        const eResult = battle.executeEnemyTurn(activePokemon);
+        setPlayerHp(eResult.playerHp);
+        setDialogue(`Le ${battle.enemy.name} adverse utilise ${eResult.move.name} !`);
+
+        setTimeout(() => {
+          setDialogue(`Que doit faire ${activePokemon.name} ?`);
+          setIsLocked(false);
+        }, 1500);
+      }, 1500);
+    }
   };
 
   return (
     <div className="flex flex-col w-[600px] h-[400px] border-4 border-gray-800 rounded-lg overflow-hidden shadow-2xl font-mono mx-auto mt-10">
-      {/* Arène de combat */}
+      {/* Arène */}
       <div className="relative flex-2 bg-gradient-to-b from-sky-300 to-green-300 p-5">
         {/* Ennemi */}
         <div className="absolute top-4 right-4 flex items-center gap-2">
@@ -126,13 +156,13 @@ export default function BattleComponent() {
         </div>
       </div>
 
-      {/* Menu et Contrôles */}
+      {/* Menu / Commandes */}
       <div className="flex flex-1 bg-gray-800 border-t-4 border-gray-900">
         <div className="flex-[1.5] bg-gray-50 border-4 border-gray-600 m-2.5 p-3 text-sm font-bold text-gray-800 rounded">
           {dialogue}
         </div>
         <div className="flex-[1.5] grid grid-cols-2 gap-2 p-2.5">
-          {!showTeamMenu ? (
+          {!showTeamMenu && !showBag ? (
             <>
               {activePokemon.attacks.map((att, idx) => (
                 <button
@@ -151,8 +181,15 @@ export default function BattleComponent() {
               >
                 ÉQUIPE
               </button>
+              <button
+                onClick={() => setShowBag(true)}
+                disabled={isLocked}
+                className="bg-red-500 border-2 border-white rounded font-bold text-white text-xs hover:bg-red-400 cursor-pointer"
+              >
+                SAC
+              </button>
             </>
-          ) : (
+          ) : showTeamMenu ? (
             <>
               {playerTeam.team.map((poke, idx) => (
                 <button
@@ -165,6 +202,24 @@ export default function BattleComponent() {
               ))}
               <button
                 onClick={() => setShowTeamMenu(false)}
+                className="col-span-2 bg-gray-600 border-2 border-white rounded font-bold text-white text-xs hover:bg-gray-500 cursor-pointer"
+              >
+                RETOUR
+              </button>
+            </>
+          ) : (
+            <>
+              {inventory.getBagContents().map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => handleUseItem(item.id)}
+                  className="bg-blue-400 border-2 border-white rounded font-bold text-white text-xs hover:bg-blue-300 cursor-pointer"
+                >
+                  {item.name} (x{item.quantity})
+                </button>
+              ))}
+              <button
+                onClick={() => setShowBag(false)}
                 className="col-span-2 bg-gray-600 border-2 border-white rounded font-bold text-white text-xs hover:bg-gray-500 cursor-pointer"
               >
                 RETOUR
