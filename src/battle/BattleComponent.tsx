@@ -1,9 +1,9 @@
 'use client';
 import { useState } from 'react';
 import { BattleManager } from './BattleManager';
-
+import { InventoryManager } from '@/src/inventory/InventoryManager';
 export default function BattleComponent() {
-  // On initialise le manager avec les identifiants présents dans pokemon.json
+
   const [battle] = useState(() => new BattleManager('pikachu', 'dracaufeu'));
 
   const [playerHp, setPlayerHp] = useState(battle.player.hp);
@@ -11,10 +11,44 @@ export default function BattleComponent() {
   const [dialogue, setDialogue] = useState(`Que doit faire ${battle.player.name} ?`);
   const [isLocked, setIsLocked] = useState(false);
 
-  // Ajoutez cet état dans votre BattleComponent
-const [inventory] = useState(() => new InventoryManager());
-const [showBag, setShowBag] = useState(false);
 
+  const [inventory] = useState(() => new InventoryManager());
+  const [showBag, setShowBag] = useState(false);
+
+  const [inventory] = useState(() => new InventoryManager());
+  const [showBag, setShowBag] = useState(false);
+
+  const handleUseItem = (itemId: string) => {
+    if (itemId === 'potion') {
+      const success = inventory.useItem('potion');
+      if (!success) {
+        setDialogue("Il n'y a plus de Potions !");
+        return;
+      }
+
+  const healAmount = 20;
+  const newHp = Math.min(battle.player.maxHp, playerHp + healAmount);
+    setPlayerHp(newHp);
+    battle.player.hp = newHp;
+    setShowBag(false);
+    setIsLocked(true);
+
+    setDialogue(`${battle.player.name} utilise une Potion et récupère des PV !`);
+
+    // Tour de l'ennemi après l'objet
+    setTimeout(() => {
+  const eResult = battle.executeEnemyTurn();
+      setPlayerHp(eResult.playerHp);
+      setDialogue(`Le ${battle.enemy.name} adverse utilise ${eResult.move.name} !`);
+
+      setTimeout(() => {
+        setDialogue(`Que doit faire ${battle.player.name} ?`);
+        setIsLocked(false);
+      }, 1500);
+    }, 1500);
+  }
+};
+  
 const handleUsePotion = () => {
   const potion = inventory.useItem('potion');
   if (!potion) {
