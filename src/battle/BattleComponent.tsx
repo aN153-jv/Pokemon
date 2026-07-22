@@ -11,6 +11,37 @@ export default function BattleComponent() {
   const [dialogue, setDialogue] = useState(`Que doit faire ${battle.player.name} ?`);
   const [isLocked, setIsLocked] = useState(false);
 
+  // Ajoutez cet état dans votre BattleComponent
+const [inventory] = useState(() => new InventoryManager());
+const [showBag, setShowBag] = useState(false);
+
+const handleUsePotion = () => {
+  const potion = inventory.useItem('potion');
+  if (!potion) {
+    alert("Plus de potions disponibles !");
+    return;
+  }
+
+  // Soigne le joueur
+  const healedHp = Math.min(battle.player.maxHp, playerHp + potion.value);
+  setPlayerHp(healedHp);
+  battle.player.hp = healedHp;
+  setShowBag(false);
+  setDialogue(`${battle.player.name} utilise une Potion et regagne ${potion.value} PV !`);
+
+  // Passe au tour de l'ennemi après l'utilisation de l'objet
+  setTimeout(() => {
+    const eResult = battle.executeEnemyTurn();
+    setPlayerHp(eResult.playerHp);
+    setDialogue(`Le ${battle.enemy.name} adverse utilise ${eResult.move.name} !`);
+    
+    setTimeout(() => {
+      setDialogue(`Que doit faire ${battle.player.name} ?`);
+      setIsLocked(false);
+    }, 1500);
+  }, 1500);
+};
+
   const handleAttackClick = (index: number) => {
     if (isLocked) return;
     setIsLocked(true);
