@@ -4,6 +4,7 @@ import { BattleManager } from './BattleManager';
 import { PlayerTeam } from '@/src/player/PlayerTeam';
 import { InventoryManager } from '@/src/inventory/InventoryManager';
 import { CaptureManager } from './CaptureManager';
+import { ExpManager } from './ExpManager';
 
 export default function BattleComponent() {
   const [playerTeam] = useState(() => new PlayerTeam(['pikachu', 'dracaufeu']));
@@ -57,7 +58,20 @@ export default function BattleComponent() {
       }, 1500);
 
     }, 1500);
-  };
+
+    if (pResult.enemyHp <= 0) {
+  const expGained = ExpManager.calculateExpReward(battle.enemy.level);
+  const result = ExpManager.addExp(activePokemon, expGained);
+
+  setDialogue(`Victoire ! ${battle.enemy.name} est K.O. ${activePokemon.name} gagne ${expGained} EXP !`);
+
+  if (result.leveledUp) {
+    setTimeout(() => {
+      setDialogue(`Incroyable ! ${activePokemon.name} monte au niveau ${result.newLevel} !`);
+    }, 1500);
+  }
+  return;
+}
 
   const handleSwitchPokemon = (index: number) => {
     const success = playerTeam.switchPokemon(index);
