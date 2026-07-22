@@ -1,6 +1,5 @@
 import pokemonData from '@/src/data/pokemon.json';
 import movesData from '@/src/data/moves.json';
-import itemsData from '@/src/data/items.json';
 
 export interface Move {
   name: string;
@@ -9,33 +8,36 @@ export interface Move {
   accuracy: number;
 }
 
-export interface PokemonTemplate {
+export interface PokemonInstance {
   name: string;
   type: string;
   level: number;
   maxHp: number;
   hp: number;
-  attacks: string[]; // Noms des attaques
+  attacks: Move[];
   frontSprite: string;
   backSprite: string;
 }
 
-export function getPokemon(id: string): PokemonTemplate | null {
-  const pokemons = pokemonData as Record<string, PokemonTemplate>;
-  return pokemons[id] || null;
-}
+export function createPokemonInstance(id: string): PokemonInstance | null {
+  // @ts-ignore
+  const rawPokemon = pokemonData[id];
+  if (!rawPokemon) return null;
 
-export function getMove(moveName: string): Move | null {
-  const moves = movesData as Record<string, Move>;
-  return moves[moveName] || null;
-}
+  // Récupère les objets attaques complets à partir de leurs noms dans le JSON
+  const moves: Move[] = rawPokemon.attacks.map((moveName: string) => {
+    // @ts-ignore
+    return movesData[moveName] || { name: moveName, type: "Normal", power: 30, accuracy: 100 };
+  });
 
-// Récupère les vrais objets d'attaques complets pour un Pokémon
-export function getPokemonMoves(pokemonId: string): Move[] {
-  const pokemon = getPokemon(pokemonId);
-  if (!pokemon) return [];
-  
-  return pokemon.attacks
-    .map(moveName => getMove(moveName))
-    .filter((move): move is Move => move !== null);
+  return {
+    name: rawPokemon.name,
+    type: rawPokemon.type,
+    level: rawPokemon.level,
+    maxHp: rawPokemon.maxHp,
+    hp: rawPokemon.hp,
+    attacks: moves,
+    frontSprite: rawPokemon.frontSprite,
+    backSprite: rawPokemon.backSprite
+  };
 }
