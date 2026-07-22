@@ -167,6 +167,47 @@ const handleUsePotion = () => {
             </button>
           ))}
         </div>
+      <div className="flex-[1.5] grid grid-cols-2 gap-2 p-2.5">
+  {!showBag ? (
+    <>
+      {battle.player.attacks.map((att, idx) => (
+        <button
+          key={idx}
+          onClick={() => handleAttackClick(idx)}
+          disabled={isLocked}
+          className="bg-yellow-400 border-2 border-blue-600 rounded font-bold text-blue-800 text-xs hover:bg-yellow-300 disabled:opacity-50 cursor-pointer"
+        >
+          {att.name}
+        </button>
+      ))}
+      <button
+        onClick={() => setShowBag(true)}
+        disabled={isLocked}
+        className="col-span-2 bg-red-500 border-2 border-yellow-300 rounded font-bold text-white text-xs hover:bg-red-400 cursor-pointer"
+      >
+        SAC
+      </button>
+    </>
+  ) : (
+    <>
+      {inventory.getBagContents().map((item) => (
+        <button
+          key={item.id}
+          onClick={() => handleUseItem(item.id)}
+          className="bg-blue-400 border-2 border-white rounded font-bold text-white text-xs hover:bg-blue-300 cursor-pointer"
+        >
+          {item.name} (x{item.quantity})
+        </button>
+      ))}
+      <button
+        onClick={() => setShowBag(false)}
+        className="col-span-2 bg-gray-500 border-2 border-white rounded font-bold text-white text-xs hover:bg-gray-400 cursor-pointer"
+      >
+        RETOUR
+      </button>
+    </>
+  )}
+</div>
       </div>
     </div>
   );
