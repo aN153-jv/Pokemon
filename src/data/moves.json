@@ -1,1 +1,26 @@
-{}
+{
+  "Electacle": {
+    "name": "Électacle",
+    "type": "Electrik",
+    "power": 45,
+    "accuracy": 100
+  },
+  "Queue de Fer": {
+    "name": "Queue de Fer",
+    "type": "Acier",
+    "power": 35,
+    "accuracy": 75
+  },
+  "Lance-Flammes": {
+    "name": "Lance-Flammes",
+    "type": "Feu",
+    "power": 40,
+    "accuracy": 100
+  },
+  "Dracacriffe": {
+    "name": "Dracacriffe",
+    "type": "Dragon",
+    "power": 30,
+    "accuracy": 100
+  }
+}
